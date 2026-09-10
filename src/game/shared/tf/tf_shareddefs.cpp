@@ -1853,6 +1853,9 @@ bool IsPlayingInvasionMap( void )
 	return false;
 }
 
+// Client display toggle is tf_voice_show_class_icons (hud_voicestatus.cpp).
+ConVar sv_voice_show_class_icons( "sv_voice_show_class_icons", "1", FCVAR_REPLICATED | FCVAR_NOTIFY, "Allow voice speaker class icons to reveal a cross-team speaker's class. Does not affect same-team icons." );
+
 const char *g_pszClassIcons[SCOREBOARD_CLASS_ICONS] =
 {
 	"",
