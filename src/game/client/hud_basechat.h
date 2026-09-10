@@ -19,10 +19,12 @@
 #include <vgui_controls/RichText.h>
 #include <vgui_controls/Button.h>
 #include <vgui_controls/CheckButton.h>
+#include <vgui_controls/Label.h>
 
 class CBaseHudChatInputLine;
 class CBaseHudChatEntry;
 class CHudChatFilterPanel;
+class CBaseHudChat;
 
 namespace vgui
 {
@@ -314,7 +316,7 @@ protected:
 
 	Color			m_ColorCustom;
 
-private:	
+private:
 	void			Clear( void );
 
 	int				ComputeBreakChar( int width, const char *text, int textlen );
@@ -334,7 +336,7 @@ class CBaseHudChatEntry : public vgui::TextEntry
 {
 	typedef vgui::TextEntry BaseClass;
 public:
-	CBaseHudChatEntry( vgui::Panel *parent, char const *panelName, vgui::Panel *pChat )
+	CBaseHudChatEntry( vgui::Panel *parent, char const *panelName, CBaseHudChat *pChat )
 		: BaseClass( parent, panelName )
 	{
 		SetProportional( true );
@@ -381,7 +383,7 @@ public:
 	}
 
 private:
-	vgui::Panel *m_pHudChat;
+	CBaseHudChat *m_pHudChat;
 };
 
 //-----------------------------------------------------------------------------
