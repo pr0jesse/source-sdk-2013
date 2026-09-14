@@ -392,7 +392,7 @@ CBaseHudChatInputLine::CBaseHudChatInputLine( vgui::Panel *parent, char const *p
 
 	m_pPrompt = new vgui::Label( this, "ChatInputPrompt", L"Enter text:" );
 
-	m_pInput = new CBaseHudChatEntry( this, "ChatInput", dynamic_cast<CBaseHudChat *>( parent ) );
+	m_pInput = new CBaseHudChatEntry( this, "ChatInput", parent );	
 	m_pInput->SetMaximumCharCount( 127 );
 }
 

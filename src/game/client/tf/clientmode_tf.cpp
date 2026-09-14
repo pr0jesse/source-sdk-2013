@@ -2218,8 +2218,7 @@ void ClientModeTFNormal::UpdateSteamRichPresence() const
 	// 'status' field -- used by legacy steam client only right now
 	//
 	// If we're connecting or connected, the source engine called AdvertiseGame() which shows a this-server status we
-	// don't want to override, except if we're in a match which cannot be ad-hoc joined, or Streamer Mode wants
-	// a generic status instead.
+	// don't want to override -- except if we're in a match which cannot be ad-hoc joined.
 	wchar_t wzStatus[256] = { 0 };
 	if ( ( bInMatch || ( !bConnecting && !bConnected ) || bStreamerBlockDirectJoin ) &&
 	     BuildRichPresenceStatus( wzStatus, pszState, pszMatchGroupLoc, pszPrettyMap ))
