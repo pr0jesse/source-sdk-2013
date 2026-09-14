@@ -67,7 +67,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_voice_show_class_icons"
 	{
 		"Show class icons for voice speakers"
-		"Show a small class icon next to a speaking player's name. Enemy speakers only show their class if the server allows it."
+		"Show class icons next to voice chat speakers. Enemy icons depend on the server."
 		{ BOOL }
 		{ "1" }
 	}

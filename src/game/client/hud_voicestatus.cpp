@@ -24,8 +24,7 @@
 ConVar *sv_alltalk = NULL;
 
 #if defined( TF_CLIENT_DLL )
-ConVar tf_voice_show_class_icons( "tf_voice_show_class_icons", "1", FCVAR_ARCHIVE | FCVAR_CLIENTDLL, "Show a small class icon next to voice chat speakers' names." );
-// Looked up lazily, like sv_alltalk above.
+ConVar tf_voice_show_class_icons( "tf_voice_show_class_icons", "1", FCVAR_ARCHIVE | FCVAR_CLIENTDLL, "Show class icons for voice chat speakers." );
 static ConVar *sv_voice_show_class_icons = NULL;
 #endif
 
@@ -169,7 +168,6 @@ private:
 	CPanelAnimationVarAliasType( float, text_xpos, "text_xpos", "40", "proportional_float" );
 
 #if defined( TF_CLIENT_DLL )
-	// Shares the dead-player icon slot.
 	CPanelAnimationVarAliasType( bool, show_class_icon, "show_class_icon", "1", "bool" );
 	CPanelAnimationVarAliasType( float, class_icon_ypos, "class_icon_ypos", "2", "proportional_float" );
 	CPanelAnimationVarAliasType( float, class_icon_xpos, "class_icon_xpos", "2", "proportional_float" );
@@ -482,7 +480,6 @@ void CHudVoiceStatus::Paint()
 			vgui::IImage *pClassIcon = GetClassIconForSpeaker( playerId );
 			if ( pClassIcon )
 			{
-				// Restore the shared image's original size after drawing.
 				int iOrigWide, iOrigTall;
 				pClassIcon->GetSize( iOrigWide, iOrigTall );
 
@@ -558,7 +555,6 @@ vgui::IImage *CHudVoiceStatus::GetClassIconForSpeaker( int playerId )
 		if ( !sv_voice_show_class_icons )
 			sv_voice_show_class_icons = cvar->FindVar( "sv_voice_show_class_icons" );
 
-		// Missing server ConVar leaves class icons enabled.
 		if ( sv_voice_show_class_icons && !sv_voice_show_class_icons->GetBool() )
 			return NULL;
 	}
