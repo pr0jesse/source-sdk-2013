@@ -139,7 +139,6 @@
 			"enabled"		"1"
 			"fgcolor_override"	"235 226 202 255"
 			"wrap"			"1"
-			//"centerwrap"	"1"
 		}
 	}
 }
