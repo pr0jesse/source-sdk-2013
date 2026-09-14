@@ -42,7 +42,7 @@
 
 #ifdef TF_CLIENT_DLL
 	ConVar cl_flipviewmodels( "cl_flipviewmodels", "0", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_NOT_CONNECTED, "Flip view models." );
-	ConVar cl_viewmodel_opacity( "cl_viewmodel_opacity", "100", FCVAR_ARCHIVE, "Opacity of the first-person viewmodel (100 = fully opaque, 0 = invisible).", true, 0.0f, true, 100.0f );
+	ConVar cl_viewmodel_opacity( "cl_viewmodel_opacity", "100", FCVAR_ARCHIVE, "Viewmodel opacity percentage.", true, 0.0f, true, 100.0f );
 #endif
 
 void PostToolMessage( HTOOLHANDLE hEntity, KeyValues *msg );

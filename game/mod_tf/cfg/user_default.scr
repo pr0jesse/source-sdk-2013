@@ -195,7 +195,7 @@ DESCRIPTION INFO_OPTIONS
 	"hud_combattext_healing"
 	{
 		"Healing numbers"
-		"Shows healing done per-second as floating combat text over heal targets."
+		"Show healing as floating combat text."
 		{ BOOL }
 		{ "1" }
 	}
@@ -390,7 +390,7 @@ DESCRIPTION INFO_OPTIONS
 	"fov_desired"
 	{
 		"World FOV"
-		"Field of view for the game world. Does not raise TF2's intended maximum."
+		"Field of view for the game world."
 		{ SLIDER 75 90 }
 		{ "90" }
 	}
@@ -414,7 +414,7 @@ DESCRIPTION INFO_OPTIONS
 	"cl_viewmodel_opacity"
 	{
 		"Viewmodel Opacity"
-		"Controls the opacity of the first-person viewmodel."
+		"Viewmodel opacity percentage."
 		{ SLIDER 0 100 }
 		{ "100" }
 	}
