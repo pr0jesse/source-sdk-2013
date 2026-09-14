@@ -1043,7 +1043,6 @@ void CEconItemDescription::Generate_ItemName( const CLocalizationProvider *pLoca
 
 	// If this item has a custom name, use it instead of doing our crazy name compositing based on quality,
 	// type, etc.
-	// Hide custom text when requested by the client hook.
 	const char *utf8_CustomName = pEconItem->GetCustomName();
 	bool bHideCustomName = g_pfnEconShouldHideCustomItemText && g_pfnEconShouldHideCustomItemText( pEconItem->GetAccountID() );
 
@@ -1582,7 +1581,6 @@ void CEconItemDescription::Generate_ItemDesc( const CLocalizationProvider *pLoca
 	Assert( pEconItem );
 
 	// Show the custom description if it has one.
-	// Hide custom text when requested by the client hook.
 	const char *utf8_CustomDesc = pEconItem->GetCustomDesc();
 	bool bHideCustomDesc = g_pfnEconShouldHideCustomItemText && g_pfnEconShouldHideCustomItemText( pEconItem->GetAccountID() );
 	if ( utf8_CustomDesc && utf8_CustomDesc[0] && !bHideCustomDesc )

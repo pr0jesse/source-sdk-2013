@@ -848,7 +848,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode"
 	{
 		"Enable Streamer Mode"
-		"Client-side only. Hides or replaces player information on your screen. Your Steam name is still visible to other players."
+		"Hide or replace identifying information on your screen."
 		{ BOOL }
 		{ "0" }
 	}
@@ -856,7 +856,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_name"
 	{
 		"Streamer display name"
-		"Local display name used while Streamer Mode is enabled."
+		"Name shown locally in Streamer Mode."
 		{ STRING }
 		{ "second biggest tf2 streamer" }
 	}
@@ -864,7 +864,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_name_style"
 	{
 		"Anonymous player naming"
-		"How other players are labeled while Streamer Mode is on."
+		"How anonymised players are named."
 		{
 			LIST
 			"Player Numbers" "0"
@@ -876,7 +876,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_anonymise_names"
 	{
 		"Anonymise player names"
-		"Replace other players' names with an anonymous alias in passive UI (scoreboard, killfeed, target ID, etc)."
+		"Anonymise other players' names."
 		{ BOOL }
 		{ "1" }
 	}
@@ -884,7 +884,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_anonymise_party_members"
 	{
 		"Also anonymise party members"
-		"Apply name and avatar anonymisation to players in your party."
+		"Anonymise party members too."
 		{ BOOL }
 		{ "0" }
 	}
@@ -892,7 +892,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_default_avatars"
 	{
 		"Use default Steam avatars"
-		"Show the default Steam avatar instead of other players' real avatars in passive UI."
+		"Use default avatars for other players."
 		{ BOOL }
 		{ "1" }
 	}
@@ -900,7 +900,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_chat"
 	{
 		"Hide all chat messages"
-		"Hide public, team, and system chat messages. Party chat has its own toggle below."
+		"Hide public, team, and system chat."
 		{ BOOL }
 		{ "1" }
 	}
@@ -908,7 +908,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_callouts"
 	{
 		"Hide gameplay callouts"
-		"Hide voice-menu text such as Medic!, Incoming!, and Sniper!."
+		"Hide voice-menu callouts."
 		{ BOOL }
 		{ "0" }
 	}
@@ -916,7 +916,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_party_chat"
 	{
 		"Hide party chat"
-		"Hide messages from party chat."
+		"Hide party chat."
 		{ BOOL }
 		{ "1" }
 	}
@@ -924,7 +924,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_disable_voice"
 	{
 		"Disable voice chat"
-		"Don't play incoming voice chat audio while Streamer Mode is on."
+		"Mute incoming voice chat."
 		{ BOOL }
 		{ "1" }
 	}
@@ -932,7 +932,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_server_info"
 	{
 		"Hide server information"
-		"Hide server hostname/IP from local UI. Map name stays visible."
+		"Hide server hostname and IP."
 		{ BOOL }
 		{ "1" }
 	}
@@ -940,7 +940,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_disable_join_presence"
 	{
 		"Disable direct-join and rich presence"
-		"Reduce Steam Rich Presence to a generic status instead of an exact, directly-joinable server location."
+		"Hide direct-join server presence."
 		{ BOOL }
 		{ "1" }
 	}
@@ -948,7 +948,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_custom_item_text"
 	{
 		"Hide custom item names and descriptions"
-		"Hide other players' custom item names and descriptions. Doesn't hide your own."
+		"Hide other players' custom item text."
 		{ BOOL }
 		{ "1" }
 	}
@@ -956,7 +956,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_custom_images"
 	{
 		"Hide sprays and custom player images"
-		"Hide other players' sprays and custom images. Doesn't hide your own."
+		"Hide other players' sprays and custom images."
 		{ BOOL }
 		{ "1" }
 	}
@@ -964,7 +964,7 @@ DESCRIPTION INFO_OPTIONS
 	"tf_streamer_mode_hide_friends_list"
 	{
 		"Hide the friends list"
-		"Hide the main menu's Steam friends list (names, avatars, status) and show a plain notice instead."
+		"Hide the main-menu friends list."
 		{ BOOL }
 		{ "1" }
 	}
