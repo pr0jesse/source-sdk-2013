@@ -1,9 +1,3 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
-//
-// Client-side rendering for the tf_3dping 3D world ping system.
-//
-//=============================================================================
-
 #ifndef TF_HUD_3DPING_H
 #define TF_HUD_3DPING_H
 #ifdef _WIN32
@@ -14,8 +8,6 @@
 #include <vgui_controls/Panel.h>
 #include "tf_3dping_shared.h"
 
-// Separate from ETF3DPingType: icon selection only cares about
-// friend/foe/resource, plus player vs. building.
 enum ETF3DPingIcon
 {
 	TF_3DPING_ICON_DEFAULT = 0,
@@ -25,6 +17,9 @@ enum ETF3DPingIcon
 	TF_3DPING_ICON_ENEMY_BUILDING,
 	TF_3DPING_ICON_PICKUP_HEALTH,
 	TF_3DPING_ICON_PICKUP_AMMO,
+	TF_3DPING_ICON_MVM_ROBOT,
+	TF_3DPING_ICON_MVM_SENTRYBUSTER,
+	TF_3DPING_ICON_MVM_TANK,
 
 	TF_3DPING_ICON_COUNT
 };
@@ -42,11 +37,8 @@ public:
 	virtual void Paint( void );
 	virtual void OnThink( void );
 
-	// True while cloaked or still inside the post-cloak lockout window.
 	bool IsLocalPlayerStealthLocked( void ) const;
 
-	// bFromPartyScope reflects which of the (up to two) server-sent
-	// messages this came from, and picks the notification sound.
 	void OnPingReceived( ETF3DPingType eType, int iSenderEntIndex, const Vector &vecPosition, float flLifetime, bool bHostile, bool bFromPartyScope );
 
 private:
@@ -58,7 +50,7 @@ private:
 		Vector				vecPosition;
 		float				flSpawnTime;
 		float				flExpireTime;
-		bool				bHostile;			// selects friendly/enemy icon
+		bool				bHostile;
 		bool				bFromPartyScope;
 		float				flOcclusionAmount;
 	};
@@ -69,8 +61,7 @@ private:
 
 	ActivePing_t	m_Pings[ MAX_PLAYERS + 1 ];
 
-	// bActive here means still fading out. flExpireTime is reused as the
-	// fade start time.
+	// Replaced markers use flExpireTime as the fade start time.
 	ActivePing_t	m_DyingPings[ MAX_PLAYERS + 1 ];
 
 	int				m_iFillTextureID[ TF_3DPING_ICON_COUNT ];
@@ -81,7 +72,6 @@ private:
 	bool			m_bWasStealthed;
 	float			m_flLastUnstealthTime;
 
-	// TEAM_UNASSIGNED means not currently spectating.
 	int				m_iLastObservedTeam;
 };
 
@@ -89,10 +79,8 @@ CHud3DPing *GetHud3DPing( void );
 
 namespace vgui { class PanelListPanel; class Label; }
 
-#define TF_3DPING_PREVIEW_COUNT	7
+#define TF_3DPING_PREVIEW_COUNT	10
 
-// Fixed-size strip of all 7 ping icons with their live colors, shown above
-// the 3D Ping settings. Reuses the same materials/color ConVars as the HUD.
 class CTF3DPingIconPreview : public vgui::Panel
 {
 	DECLARE_CLASS_SIMPLE( CTF3DPingIconPreview, vgui::Panel );
@@ -112,8 +100,6 @@ private:
 	vgui::Label		*m_pLabels[ TF_3DPING_PREVIEW_COUNT ];
 };
 
-// Adds the preview strip as the first row of pList when pszCategoryPrompt
-// is the 3D Ping category. No-op for any other category.
 void TF3DPing_MaybeInsertPreviewRow( vgui::PanelListPanel *pList, const char *pszCategoryPrompt );
 
 #endif // TF_HUD_3DPING_H

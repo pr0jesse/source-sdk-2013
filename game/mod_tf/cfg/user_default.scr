@@ -902,7 +902,7 @@ DESCRIPTION INFO_OPTIONS
 	{
 		"Ping icon size"
 		"Size of the 3D ping marker icon."
-		{ SLIDER 50 400 }
+		{ SLIDER 50 320 }
 		{ "161.94" }
 	}
 
@@ -935,15 +935,15 @@ DESCRIPTION INFO_OPTIONS
 		"Ping icon border color"
 		"RGB color of the 3D ping marker borders, 0-255 each. One shared color for every ping type."
 		{ STRING }
-		{ "0 0 0" }
+		{ "255 238 193" }
 	}
 
 	"cl_3dping_color_default"
 	{
 		"World ping color"
-		"RGB color of the plain world 3D ping, 0-255 each (e.g. 235 226 210)."
+		"RGB color of the plain world 3D ping, 0-255 each (e.g. 103 124 124)."
 		{ STRING }
-		{ "235 226 210" }
+		{ "103 124 124" }
 	}
 
 	"cl_3dping_color_friendly"
@@ -951,7 +951,7 @@ DESCRIPTION INFO_OPTIONS
 		"Friendly player ping color"
 		"RGB color of the friendly player 3D ping, 0-255 each."
 		{ STRING }
-		{ "120 190 215" }
+		{ "53 108 133" }
 	}
 
 	"cl_3dping_color_building_friendly"
@@ -959,7 +959,7 @@ DESCRIPTION INFO_OPTIONS
 		"Friendly building ping color"
 		"RGB color of the friendly building 3D ping, 0-255 each."
 		{ STRING }
-		{ "95 165 200" }
+		{ "35 92 112" }
 	}
 
 	"cl_3dping_color_enemy"
@@ -967,7 +967,7 @@ DESCRIPTION INFO_OPTIONS
 		"Enemy player ping color"
 		"RGB color of the enemy player 3D ping, 0-255 each."
 		{ STRING }
-		{ "255 124 36" }
+		{ "224 92 38" }
 	}
 
 	"cl_3dping_color_building_enemy"
@@ -975,7 +975,7 @@ DESCRIPTION INFO_OPTIONS
 		"Enemy building ping color"
 		"RGB color of the enemy building 3D ping, 0-255 each."
 		{ STRING }
-		{ "240 105 32" }
+		{ "183 61 38" }
 	}
 
 	"cl_3dping_color_health"
@@ -983,7 +983,7 @@ DESCRIPTION INFO_OPTIONS
 		"Health pickup ping color"
 		"RGB color of the health pickup 3D ping, 0-255 each."
 		{ STRING }
-		{ "110 205 125" }
+		{ "75 132 97" }
 	}
 
 	"cl_3dping_color_ammo"
@@ -991,7 +991,31 @@ DESCRIPTION INFO_OPTIONS
 		"Ammo pickup ping color"
 		"RGB color of the ammo pickup 3D ping, 0-255 each."
 		{ STRING }
-		{ "225 185 95" }
+		{ "109 100 82" }
+	}
+
+	"cl_3dping_color_mvm_robot"
+	{
+		"MvM Robot ping color"
+		"RGB color of the MvM Robot 3D ping, 0-255 each."
+		{ STRING }
+		{ "224 92 38" }
+	}
+
+	"cl_3dping_color_mvm_sentrybuster"
+	{
+		"MvM Sentry Buster ping color"
+		"RGB color of the MvM Sentry Buster 3D ping, 0-255 each."
+		{ STRING }
+		{ "183 61 38" }
+	}
+
+	"cl_3dping_color_mvm_tank"
+	{
+		"MvM Tank ping color"
+		"RGB color of the MvM Tank 3D ping, 0-255 each."
+		{ STRING }
+		{ "183 61 38" }
 	}
 
 	"cl_3dping_party_hue_shift"

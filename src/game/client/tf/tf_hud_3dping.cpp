@@ -1,9 +1,3 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
-//
-// Client-side rendering for the tf_3dping 3D world ping system.
-//
-//=============================================================================
-
 #include "cbase.h"
 #include "tf_hud_3dping.h"
 #include "iclientmode.h"
@@ -26,19 +20,18 @@ using namespace vgui;
 DECLARE_HUDELEMENT( CHud3DPing );
 
 ConVar cl_3dping_enabled( TF_3DPING_ENABLED_CONVAR_NAME, "1", FCVAR_ARCHIVE,
-	"Show 3D world pings placed by other players." );
+	"Show 3D pings." );
 
 ConVar cl_3dping_team_enabled( TF_3DPING_TEAM_CONVAR_NAME, "0", FCVAR_ARCHIVE | FCVAR_USERINFO,
-	"Let your own 3D pings be seen by teammates outside your party." );
+	"Send pings to teammates outside your party." );
 
-// Local receive toggle.
 ConVar cl_3dping_team_receive( "cl_3dping_team_receive", "1", FCVAR_ARCHIVE,
-	"See other teammates' 3D pings outside your party (if the sender and the server both allow team-wide pings)." );
+	"Show team pings from outside your party." );
 
 #define TF_3DPING_CLICK_SOUND	"ui/buttonclick.wav"
 
 ConVar cl_3dping_place_sound_volume( "cl_3dping_place_sound_volume", "100", FCVAR_ARCHIVE,
-	"Volume of the click sound when you place a 3D ping. 0 = off, 100 = normal volume.", true, 0.0f, true, 100.0f );
+	"Ping placement sound volume.", true, 0.0f, true, 100.0f );
 
 enum ETF3DPingReceivedSoundMode
 {
@@ -48,40 +41,47 @@ enum ETF3DPingReceivedSoundMode
 };
 
 ConVar cl_3dping_received_sound_mode( "cl_3dping_received_sound_mode", "1", FCVAR_ARCHIVE,
-	"Which other players' 3D pings play a sound: 0 = none, 1 = party members only, 2 = party and team.", true, 0.0f, true, 2.0f );
+	"Sound mode for received pings.", true, 0.0f, true, 2.0f );
 
 ConVar cl_3dping_received_sound_volume( "cl_3dping_received_sound_volume", "100", FCVAR_ARCHIVE,
-	"Volume of the click sound for other players' 3D pings (party and/or team, per the mode above). 0 = off, 100 = normal volume.", true, 0.0f, true, 100.0f );
+	"Received ping sound volume.", true, 0.0f, true, 100.0f );
 
-ConVar cl_3dping_color_default( "cl_3dping_color_default", "235 226 210", FCVAR_ARCHIVE,
-	"RGB color (0-255 each, e.g. \"235 226 210\") of the plain world 3D ping." );
+ConVar cl_3dping_color_default( "cl_3dping_color_default", "103 124 124", FCVAR_ARCHIVE,
+	"World ping RGB color." );
 
-ConVar cl_3dping_color_friendly( "cl_3dping_color_friendly", "120 190 215", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the friendly player 3D ping." );
+ConVar cl_3dping_color_friendly( "cl_3dping_color_friendly", "53 108 133", FCVAR_ARCHIVE,
+	"Friendly ping RGB color." );
 
-ConVar cl_3dping_color_building_friendly( "cl_3dping_color_building_friendly", "95 165 200", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the friendly building 3D ping." );
+ConVar cl_3dping_color_building_friendly( "cl_3dping_color_building_friendly", "35 92 112", FCVAR_ARCHIVE,
+	"Friendly building ping RGB color." );
 
-ConVar cl_3dping_color_enemy( "cl_3dping_color_enemy", "255 124 36", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the enemy player 3D ping." );
+ConVar cl_3dping_color_enemy( "cl_3dping_color_enemy", "224 92 38", FCVAR_ARCHIVE,
+	"Enemy ping RGB color." );
 
-ConVar cl_3dping_color_building_enemy( "cl_3dping_color_building_enemy", "240 105 32", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the enemy building 3D ping." );
+ConVar cl_3dping_color_building_enemy( "cl_3dping_color_building_enemy", "183 61 38", FCVAR_ARCHIVE,
+	"Enemy building ping RGB color." );
 
-ConVar cl_3dping_color_health( "cl_3dping_color_health", "110 205 125", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the health pickup 3D ping." );
+ConVar cl_3dping_color_health( "cl_3dping_color_health", "75 132 97", FCVAR_ARCHIVE,
+	"Health ping RGB color." );
 
-ConVar cl_3dping_color_ammo( "cl_3dping_color_ammo", "225 185 95", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the ammo pickup 3D ping." );
+ConVar cl_3dping_color_ammo( "cl_3dping_color_ammo", "109 100 82", FCVAR_ARCHIVE,
+	"Ammo ping RGB color." );
 
-// Party/team color variation.
+ConVar cl_3dping_color_mvm_robot( "cl_3dping_color_mvm_robot", "224 92 38", FCVAR_ARCHIVE,
+	"MvM Robot ping RGB color." );
+
+ConVar cl_3dping_color_mvm_sentrybuster( "cl_3dping_color_mvm_sentrybuster", "183 61 38", FCVAR_ARCHIVE,
+	"Sentry Buster ping RGB color." );
+
+ConVar cl_3dping_color_mvm_tank( "cl_3dping_color_mvm_tank", "183 61 38", FCVAR_ARCHIVE,
+	"Tank ping RGB color." );
+
 ConVar cl_3dping_party_hue_shift( "cl_3dping_party_hue_shift", "-20", FCVAR_ARCHIVE,
-	"Hue shift for pings from party members, in degrees around the color wheel.", true, -45.0f, true, 45.0f );
+	"Party ping hue shift.", true, -45.0f, true, 45.0f );
 
 ConVar cl_3dping_team_hue_shift( "cl_3dping_team_hue_shift", "20", FCVAR_ARCHIVE,
-	"Hue shift for pings from teammates outside your party, in degrees around the color wheel.", true, -70.0f, true, 70.0f );
+	"Team ping hue shift.", true, -70.0f, true, 70.0f );
 
-// Parses "R G B" or "R,G,B".
 static Color TF_3DPing_ParseColorConVar( const ConVar &cvar )
 {
 	int r, g, b;
@@ -94,10 +94,8 @@ static Color TF_3DPing_ParseColorConVar( const ConVar &cvar )
 	return Color( clamp( r, 0, 255 ), clamp( g, 0, 255 ), clamp( b, 0, 255 ), 255 );
 }
 
-// Brightness nudge so the shift stays visible on a low-saturation color.
 #define TF_3DPING_HUE_SHIFT_VALUE_NUDGE 0.12f
 
-// Reduces hue rotation on highly saturated colors.
 #define TF_3DPING_HUE_SHIFT_SATURATION_DAMPING 0.75f
 
 static Color TF_3DPing_ApplyHueShift( Color colIn, float flHueShiftDegrees )
@@ -148,14 +146,20 @@ static Color GetColorForIcon( ETF3DPingIcon eIcon )
 		return TF_3DPing_ParseColorConVar( cl_3dping_color_health );
 	case TF_3DPING_ICON_PICKUP_AMMO:
 		return TF_3DPing_ParseColorConVar( cl_3dping_color_ammo );
+	case TF_3DPING_ICON_MVM_ROBOT:
+		return TF_3DPing_ParseColorConVar( cl_3dping_color_mvm_robot );
+	case TF_3DPING_ICON_MVM_SENTRYBUSTER:
+		return TF_3DPing_ParseColorConVar( cl_3dping_color_mvm_sentrybuster );
+	case TF_3DPING_ICON_MVM_TANK:
+		return TF_3DPing_ParseColorConVar( cl_3dping_color_mvm_tank );
 	case TF_3DPING_ICON_DEFAULT:
 	default:
 		return TF_3DPing_ParseColorConVar( cl_3dping_color_default );
 	}
 }
 
-ConVar cl_3dping_color_border( "cl_3dping_color_border", "0 0 0", FCVAR_ARCHIVE,
-	"RGB color (0-255 each) of the 3D ping icon borders. One shared color for every ping type." );
+ConVar cl_3dping_color_border( "cl_3dping_color_border", "255 238 193", FCVAR_ARCHIVE,
+	"Ping border RGB color." );
 
 struct TF3DPingIconMaterials_t
 {
@@ -165,35 +169,34 @@ struct TF3DPingIconMaterials_t
 
 static const TF3DPingIconMaterials_t s_TF3DPingIconMaterials[ TF_3DPING_ICON_COUNT ] =
 {
-	{ "vgui/hud/3dping_default_fill",			"vgui/hud/3dping_default_border" },		// TF_3DPING_ICON_DEFAULT
-	{ "vgui/hud/3dping_default_fill",			"vgui/hud/3dping_default_border" },		// TF_3DPING_ICON_FRIENDLY_PLAYER: reuses the default shape
-	{ "vgui/hud/3dping_building_fill",			"vgui/hud/3dping_building_border" },		// TF_3DPING_ICON_FRIENDLY_BUILDING
-	{ "vgui/hud/3dping_enemy_fill",				"vgui/hud/3dping_enemy_border" },			// TF_3DPING_ICON_ENEMY_PLAYER
-	{ "vgui/hud/3dping_building_fill",			"vgui/hud/3dping_building_border" },		// TF_3DPING_ICON_ENEMY_BUILDING: shares the building shape
-	{ "vgui/hud/3dping_pickup_health_fill",		"vgui/hud/3dping_pickup_health_border" },	// TF_3DPING_ICON_PICKUP_HEALTH
-	{ "vgui/hud/3dping_pickup_ammo_fill",		"vgui/hud/3dping_pickup_ammo_border" },	// TF_3DPING_ICON_PICKUP_AMMO
+	{ "vgui/hud/3dping_default_fill",			"vgui/hud/3dping_default_border" },
+	{ "vgui/hud/3dping_friendly_fill",			"vgui/hud/3dping_friendly_border" },
+	{ "vgui/hud/3dping_building_fill",			"vgui/hud/3dping_building_border" },
+	{ "vgui/hud/3dping_enemy_fill",				"vgui/hud/3dping_enemy_border" },
+	{ "vgui/hud/3dping_building_fill",			"vgui/hud/3dping_building_border" },
+	{ "vgui/hud/3dping_pickup_health_fill",		"vgui/hud/3dping_pickup_health_border" },
+	{ "vgui/hud/3dping_pickup_ammo_fill",		"vgui/hud/3dping_pickup_ammo_border" },
+	{ "vgui/hud/3dping_mvm_robot_fill",			"vgui/hud/3dping_mvm_robot_border" },
+	{ "vgui/hud/3dping_mvm_sentrybuster_fill",	"vgui/hud/3dping_mvm_sentrybuster_border" },
+	{ "vgui/hud/3dping_mvm_tank_fill",			"vgui/hud/3dping_mvm_tank_border" },
 };
 
-// Half-size, in reference (640-wide) pixels, of the icon at close range.
 #define TF_3DPING_ICON_HALFSIZE	7.5f
 
 ConVar cl_3dping_icon_size( "cl_3dping_icon_size", "100", FCVAR_ARCHIVE,
-	"Size of the 3D ping marker icon, as a percentage of the default size.", true, 50.0f, true, 400.0f );
+	"Ping icon size percentage.", true, 50.0f, true, 320.0f );
 
 ConVar cl_3dping_alpha( "cl_3dping_alpha", "100", FCVAR_ARCHIVE,
-	"Overall opacity of the 3D ping marker, as a percentage (100 = fully opaque, 5 = 95% transparent).", true, 5.0f, true, 100.0f );
+	"Ping opacity percentage.", true, 5.0f, true, 100.0f );
 
-// Per-scope opacity, on top of cl_3dping_alpha.
 ConVar cl_3dping_party_alpha( "cl_3dping_party_alpha", "100", FCVAR_ARCHIVE,
-	"Opacity multiplier for pings from party members, on top of cl_3dping_alpha above.", true, 0.0f, true, 100.0f );
+	"Party ping opacity percentage.", true, 0.0f, true, 100.0f );
 
 ConVar cl_3dping_team_alpha( "cl_3dping_team_alpha", "100", FCVAR_ARCHIVE,
-	"Opacity multiplier for pings from teammates outside your party, on top of cl_3dping_alpha above.", true, 0.0f, true, 100.0f );
+	"Team ping opacity percentage.", true, 0.0f, true, 100.0f );
 
-// Fade-out window.
 #define TF_3DPING_LIFETIME_FADE_WINDOW	0.6f
 
-// Spawn fade and size overshoot.
 #define TF_3DPING_SPAWN_FADE_IN_WINDOW	0.15f
 #define TF_3DPING_SPAWN_POP_SCALE		1.3f
 
@@ -201,14 +204,14 @@ ConVar cl_3dping_team_alpha( "cl_3dping_team_alpha", "100", FCVAR_ARCHIVE,
 #define TF_3DPING_ALPHA_FADE_END_DIST		3200.0f
 
 ConVar cl_3dping_min_opacity( "cl_3dping_min_opacity", "5", FCVAR_ARCHIVE,
-	"The lowest opacity distance fade alone can bring a 3D ping down to, as a percentage (100 = fully opaque, 0 = fully transparent).", true, 0.0f, true, 100.0f );
+	"Minimum distance-fade opacity.", true, 0.0f, true, 100.0f );
 
 #define TF_3DPING_SIZE_FADE_START_DIST	500.0f
 #define TF_3DPING_SIZE_FADE_END_DIST	1600.0f
 #define TF_3DPING_SIZE_MIN_SCALE		0.55f
 
 ConVar cl_3dping_occluded_visibility( "cl_3dping_occluded_visibility", "25", FCVAR_ARCHIVE,
-	"How opaque a 3D ping stays when there's no clear view of it (e.g. behind a wall or another player), as a percentage (100 = no extra dimming, 0 = as transparent as cl_3dping_min_opacity allows).", true, 0.0f, true, 100.0f );
+	"Occluded ping opacity.", true, 0.0f, true, 100.0f );
 
 #define TF_3DPING_OCCLUSION_FADE_RATE	8.0f
 
@@ -219,30 +222,30 @@ CHud3DPing *GetHud3DPing( void )
 	return s_pHud3DPing;
 }
 
-// Left-to-right order for the strip below, independent of ETF3DPingIcon's grouping.
 static const ETF3DPingIcon s_TF3DPingPreviewOrder[ TF_3DPING_PREVIEW_COUNT ] =
 {
 	TF_3DPING_ICON_DEFAULT,
-	TF_3DPING_ICON_ENEMY_PLAYER,
-	TF_3DPING_ICON_ENEMY_BUILDING,
 	TF_3DPING_ICON_FRIENDLY_PLAYER,
 	TF_3DPING_ICON_FRIENDLY_BUILDING,
-	TF_3DPING_ICON_PICKUP_AMMO,
+	TF_3DPING_ICON_ENEMY_PLAYER,
+	TF_3DPING_ICON_ENEMY_BUILDING,
 	TF_3DPING_ICON_PICKUP_HEALTH,
+	TF_3DPING_ICON_PICKUP_AMMO,
+	TF_3DPING_ICON_MVM_ROBOT,
+	TF_3DPING_ICON_MVM_SENTRYBUSTER,
+	TF_3DPING_ICON_MVM_TANK,
 };
 
 static const char *s_pszTF3DPingPreviewLabels[ TF_3DPING_PREVIEW_COUNT ] =
 {
-	"World", "Enemy", "Enemy Building", "Friendly", "Friendly Building", "Ammo", "Health",
+	"World", "Friendly", "Friendly\nBuilding", "Enemy", "Enemy\nBuilding", "Health", "Ammo", "MvM\nRobot", "Sentry\nBuster", "Tank",
 };
 
-// Used before the parent list has been laid out.
 #define TF_3DPING_PREVIEW_FALLBACK_WIDE	350
-#define TF_3DPING_PREVIEW_ICON_AREA_TALL	128
-#define TF_3DPING_PREVIEW_LABEL_TALL		20
-#define TF_3DPING_PREVIEW_ICON_HALFSIZE	60
+#define TF_3DPING_PREVIEW_ICON_AREA_TALL	108
+#define TF_3DPING_PREVIEW_LABEL_TALL		40
+#define TF_3DPING_PREVIEW_ICON_HALFSIZE	42
 
-//-----------------------------------------------------------------------------
 CTF3DPingIconPreview::CTF3DPingIconPreview( vgui::Panel *pParent, const char *pElementName )
 	: BaseClass( pParent, pElementName )
 {
@@ -261,10 +264,10 @@ CTF3DPingIconPreview::CTF3DPingIconPreview( vgui::Panel *pParent, const char *pE
 	{
 		m_pLabels[i] = new vgui::Label( this, "TF3DPingPreviewLabel", s_pszTF3DPingPreviewLabels[i] );
 		m_pLabels[i]->SetContentAlignment( vgui::Label::a_north );
+		m_pLabels[i]->SetCenterWrap( true );
 	}
 }
 
-// Preview remains available while ping rendering is disabled.
 void CTF3DPingIconPreview::ApplySchemeSettings( vgui::IScheme *pScheme )
 {
 	BaseClass::ApplySchemeSettings( pScheme );
@@ -321,7 +324,6 @@ void CTF3DPingIconPreview::PerformLayout()
 	}
 }
 
-// Fixed preview size, ignores cl_3dping_icon_size.
 void CTF3DPingIconPreview::Paint()
 {
 	int iColumnWide = GetWide() / TF_3DPING_PREVIEW_COUNT;
@@ -356,7 +358,6 @@ void CTF3DPingIconPreview::Paint()
 	}
 }
 
-//-----------------------------------------------------------------------------
 void TF3DPing_MaybeInsertPreviewRow( vgui::PanelListPanel *pList, const char *pszCategoryPrompt )
 {
 	if ( !pList || !pszCategoryPrompt || Q_stricmp( pszCategoryPrompt, "3D Ping" ) != 0 )
@@ -366,7 +367,6 @@ void TF3DPing_MaybeInsertPreviewRow( vgui::PanelListPanel *pList, const char *ps
 	pList->AddItem( NULL, pPreview );
 }
 
-//-----------------------------------------------------------------------------
 CHud3DPing::CHud3DPing( const char *pElementName )
 	: CHudElement( pElementName ), BaseClass( NULL, "Hud3DPing" )
 {
@@ -397,7 +397,6 @@ CHud3DPing::CHud3DPing( const char *pElementName )
 	s_pHud3DPing = this;
 }
 
-//-----------------------------------------------------------------------------
 CHud3DPing::~CHud3DPing()
 {
 	if ( s_pHud3DPing == this )
@@ -406,7 +405,6 @@ CHud3DPing::~CHud3DPing()
 	}
 }
 
-// Re-resolves materials on each scheme reload.
 void CHud3DPing::LoadIcons( void )
 {
 	for ( int i = 0; i < TF_3DPING_ICON_COUNT; i++ )
@@ -436,7 +434,6 @@ void CHud3DPing::LoadIcons( void )
 	}
 }
 
-//-----------------------------------------------------------------------------
 void CHud3DPing::ApplySchemeSettings( vgui::IScheme *pScheme )
 {
 	BaseClass::ApplySchemeSettings( pScheme );
@@ -446,7 +443,6 @@ void CHud3DPing::ApplySchemeSettings( vgui::IScheme *pScheme )
 	LoadIcons();
 }
 
-//-----------------------------------------------------------------------------
 bool CHud3DPing::ShouldDraw( void )
 {
 	if ( !cl_3dping_enabled.GetBool() )
@@ -455,8 +451,6 @@ bool CHud3DPing::ShouldDraw( void )
 	return CHudElement::ShouldDraw();
 }
 
-// Runs every frame regardless of ShouldDraw()/cl_3dping_enabled, so the
-// post-cloak lockout timer keeps working even with pings hidden.
 void CHud3DPing::OnThink( void )
 {
 	BaseClass::OnThink();
@@ -470,7 +464,6 @@ void CHud3DPing::OnThink( void )
 	}
 	m_bWasStealthed = bStealthed;
 
-	// Drop markers on an observed-team switch. They were scoped to the team just left.
 	if ( pLocalPlayer && pLocalPlayer->GetTeamNumber() == TEAM_SPECTATOR )
 	{
 		CBaseEntity *pObserverTarget = pLocalPlayer->GetObserverTarget();
@@ -490,7 +483,6 @@ void CHud3DPing::OnThink( void )
 	}
 }
 
-// True while cloaked or still inside the post-cloak lockout window.
 bool CHud3DPing::IsLocalPlayerStealthLocked( void ) const
 {
 	C_TFPlayer *pLocalPlayer = C_TFPlayer::GetLocalTFPlayer();
@@ -503,25 +495,20 @@ bool CHud3DPing::IsLocalPlayerStealthLocked( void ) const
 	return ( gpGlobals->curtime - m_flLastUnstealthTime ) < TF_3DPING_POST_CLOAK_LOCKOUT;
 }
 
-//-----------------------------------------------------------------------------
 void CHud3DPing::OnPingReceived( ETF3DPingType eType, int iSenderEntIndex, const Vector &vecPosition, float flLifetime, bool bHostile, bool bFromPartyScope )
 {
 	if ( iSenderEntIndex < 1 || iSenderEntIndex > MAX_PLAYERS )
 		return;
 
-	// Team-wide pings (not party, not your own) are locally opt-out via
-	// cl_3dping_team_receive.
 	const bool bIsSelfPing = ( iSenderEntIndex == GetLocalPlayerIndex() );
 	if ( !bFromPartyScope && !bIsSelfPing && !cl_3dping_team_receive.GetBool() )
 		return;
 
-	// One live marker per sender. The one it replaces plays a quick
-	// fade-out via m_DyingPings instead of just vanishing.
 	if ( m_Pings[ iSenderEntIndex ].bActive )
 	{
 		ActivePing_t &dying = m_DyingPings[ iSenderEntIndex ];
 		dying = m_Pings[ iSenderEntIndex ];
-		dying.flExpireTime = gpGlobals->curtime;	// repurposed: when this dying copy started fading
+		dying.flExpireTime = gpGlobals->curtime;
 	}
 
 	ActivePing_t &ping = m_Pings[ iSenderEntIndex ];
@@ -533,13 +520,10 @@ void CHud3DPing::OnPingReceived( ETF3DPingType eType, int iSenderEntIndex, const
 	ping.flExpireTime = gpGlobals->curtime + flLifetime;
 	ping.bHostile = bHostile;
 	ping.bFromPartyScope = bFromPartyScope;
-	ping.flOcclusionAmount = 0.0f;	// don't inherit whatever this slot's previous ping last faded to
-
-	// A self-received ping confirms it passed server-side validation.
-	const bool bIsSelf = bIsSelfPing;
+	ping.flOcclusionAmount = 0.0f;
 
 	int iVolumePercent;
-	if ( bIsSelf )
+	if ( bIsSelfPing )
 	{
 		iVolumePercent = cl_3dping_place_sound_volume.GetInt();
 	}
@@ -557,7 +541,6 @@ void CHud3DPing::OnPingReceived( ETF3DPingType eType, int iSenderEntIndex, const
 	}
 }
 
-// bHostile is resolved server-side. This only maps it to an icon.
 ETF3DPingIcon CHud3DPing::GetIconForPing( const ActivePing_t &ping ) const
 {
 	switch ( ping.eType )
@@ -570,13 +553,18 @@ ETF3DPingIcon CHud3DPing::GetIconForPing( const ActivePing_t &ping ) const
 		return ping.bHostile ? TF_3DPING_ICON_ENEMY_BUILDING : TF_3DPING_ICON_FRIENDLY_BUILDING;
 	case TF_3DPING_PLAYER:
 		return ping.bHostile ? TF_3DPING_ICON_ENEMY_PLAYER : TF_3DPING_ICON_FRIENDLY_PLAYER;
+	case TF_3DPING_MVM_ROBOT:
+		return TF_3DPING_ICON_MVM_ROBOT;
+	case TF_3DPING_MVM_SENTRYBUSTER:
+		return TF_3DPING_ICON_MVM_SENTRYBUSTER;
+	case TF_3DPING_MVM_TANK:
+		return TF_3DPING_ICON_MVM_TANK;
 	case TF_3DPING_WORLD:
 	default:
 		return TF_3DPING_ICON_DEFAULT;
 	}
 }
 
-//-----------------------------------------------------------------------------
 void CHud3DPing::Paint( void )
 {
 	for ( int i = 1; i <= MAX_PLAYERS; i++ )
@@ -584,7 +572,6 @@ void CHud3DPing::Paint( void )
 		ActivePing_t &dying = m_DyingPings[i];
 		if ( dying.bActive )
 		{
-			// flExpireTime is repurposed here as the fade start time.
 			if ( gpGlobals->curtime >= dying.flExpireTime + TF_3DPING_SPAWN_FADE_IN_WINDOW )
 			{
 				dying.bActive = false;
@@ -609,8 +596,6 @@ void CHud3DPing::Paint( void )
 	}
 }
 
-// MASK_OPAQUE ignores players. Test player bodies separately so a
-// teammate standing in the way still occludes the ping.
 static bool TF3DPing_PlayerBlocksLine( const Vector &vecStart, const Vector &vecTarget )
 {
 	C_TFPlayer *pLocalPlayer = C_TFPlayer::GetLocalTFPlayer();
@@ -626,13 +611,11 @@ static bool TF3DPing_PlayerBlocksLine( const Vector &vecStart, const Vector &vec
 		if ( !pPlayer || pPlayer == pLocalPlayer || !pPlayer->IsAlive() )
 			continue;
 
-		// A cloaked Spy has no visible silhouette to occlude against.
 		if ( pPlayer->m_Shared.IsStealthed() )
 			continue;
 
 		const Vector &vecCenter = pPlayer->WorldSpaceCenter();
 
-		// Likely the ping's own target (a player-type ping), not an occluder.
 		if ( vecCenter.DistToSqr( vecTarget ) < ( 48.0f * 48.0f ) )
 			continue;
 
@@ -651,11 +634,9 @@ static bool TF3DPing_PlayerBlocksLine( const Vector &vecStart, const Vector &vec
 	return false;
 }
 
-// bDying: a marker just replaced by a new ping from the same sender.
 void CHud3DPing::DrawPing( ActivePing_t &ping, bool bDying )
 {
 	int iX, iY;
-	// Off-screen pings are not drawn.
 	if ( !GetVectorInHudSpace( ping.vecPosition, iX, iY ) )
 		return;
 
@@ -691,7 +672,6 @@ void CHud3DPing::DrawPing( ActivePing_t &ping, bool bDying )
 	float flMinOpacityScale = cl_3dping_min_opacity.GetFloat() / 100.0f;
 	float flDistScale = RemapValClamped( flDist, TF_3DPING_ALPHA_FADE_START_DIST, TF_3DPING_ALPHA_FADE_END_DIST, 1.0f, flMinOpacityScale );
 
-	// MASK_OPAQUE ignores players. Test player bodies separately.
 	trace_t tr;
 	UTIL_TraceLine( vecViewOrigin, ping.vecPosition, MASK_OPAQUE, NULL, COLLISION_GROUP_NONE, &tr );
 	float flOcclusionTarget = RemapValClamped( tr.fraction, 0.85f, 0.98f, 1.0f, 0.0f );
@@ -701,11 +681,8 @@ void CHud3DPing::DrawPing( ActivePing_t &ping, bool bDying )
 		flOcclusionTarget = 1.0f;
 	}
 
-	// Eases toward this frame's result instead of snapping.
 	ping.flOcclusionAmount = Approach( flOcclusionTarget, ping.flOcclusionAmount, TF_3DPING_OCCLUSION_FADE_RATE * gpGlobals->frametime );
 
-	// Subtracts from distance alpha, not time alpha, so a ping doesn't
-	// vanish in one frame at end of life.
 	float flDistOcclusionAlpha = flDistScale * ( cl_3dping_alpha.GetFloat() / 100.0f );
 	float flOcclusionReduction = ( 1.0f - ( cl_3dping_occluded_visibility.GetFloat() / 100.0f ) ) * ping.flOcclusionAmount;
 	float flFlooredDistOcclusionAlpha = clamp( flDistOcclusionAlpha - flOcclusionReduction, flMinOpacityScale, 1.0f );
@@ -746,7 +723,6 @@ void CHud3DPing::DrawPing( ActivePing_t &ping, bool bDying )
 	}
 	else
 	{
-		// Placeholder marker if the fill art is missing.
 		surface()->DrawSetColor( colFillTint );
 		surface()->DrawOutlinedCircle( iX, iY, iHalfSize, 16 );
 		surface()->DrawFilledRect( iX - 1, iY - 1, iX + 1, iY + 1 );
@@ -781,8 +757,7 @@ USER_MESSAGE( TF3DPing )
 	}
 }
 
-// Local pre-check only. The server (TF3DPing_OnPlayerPingCommand) re-checks.
-CON_COMMAND( tf_ping, "Place a 3D ping at whatever you're aiming at." )
+CON_COMMAND( tf_ping, "Place a 3D ping at the crosshair." )
 {
 	C_TFPlayer *pLocalPlayer = C_TFPlayer::GetLocalTFPlayer();
 	if ( !pLocalPlayer )

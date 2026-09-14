@@ -130,7 +130,7 @@ void RegisterUserMessages()
 
 	usermessages->Register( "BuiltObject", 3 ); // object type, object mode (entrance vs. exit), index
 
-	usermessages->Register( TF_3DPING_USERMSG_NAME, -1 ); // 3D world ping: type, sender, position, lifetime, hostile, from-party-scope
+	usermessages->Register( TF_3DPING_USERMSG_NAME, -1 );
 
 	// NVNT register haptic user messages
 	RegisterHapticMessages();

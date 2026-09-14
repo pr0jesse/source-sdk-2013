@@ -341,10 +341,8 @@ void CHudMainMenuOverride::AttachToGameUI( void )
 //-----------------------------------------------------------------------------
 ConVar tf_last_store_pricesheet_version( "tf_last_store_pricesheet_version", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_DONTRECORD | FCVAR_HIDDEN );
 
-// Show the party suggestion once per session.
 static bool s_bTF3DPingPartySuggestionOffered = false;
 
-// Callback for the 3D ping suggestion shown after joining or forming a party.
 static void TF3DPing_OnPartySuggestionConfirmed( bool bConfirmed, void *pContext )
 {
 	if ( !bConfirmed )
@@ -452,8 +450,6 @@ void CHudMainMenuOverride::FireGameEvent( IGameEvent *event )
 	}
 	else if ( Q_strcmp( type, "party_member_join" ) == 0 )
 	{
-		// Fires for every member gained in the local party, not just the
-		// local player, so filter down to the case of joining or forming one.
 		if ( s_bTF3DPingPartySuggestionOffered || !steamapicontext || !steamapicontext->SteamUser() )
 			return;
 
@@ -470,13 +466,13 @@ void CHudMainMenuOverride::FireGameEvent( IGameEvent *event )
 
 		ConVarRef cl_3dping_enabled( "cl_3dping_enabled" );
 		if ( !cl_3dping_enabled.IsValid() || cl_3dping_enabled.GetBool() )
-			return;	// already on, nothing to suggest
+			return;
 
 		s_bTF3DPingPartySuggestionOffered = true;
 
 		CTFGenericConfirmDialog *pDialog = vgui::SETUP_PANEL( new CTFGenericConfirmDialog(
 			"3D Pings",
-			L"You joined a party. Enable 3D pings for quick location markers?",
+			L"Enable 3D pings to mark locations for your party?",
 			"#GameUI_OK", "#GameUI_Cancel",
 			&TF3DPing_OnPartySuggestionConfirmed, this ) );
 		if ( pDialog )
