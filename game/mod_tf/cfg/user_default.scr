@@ -299,7 +299,7 @@ DESCRIPTION INFO_OPTIONS
 		"#TF_medigun_autoheal"
 		"#Tooltip_medigun_autoheal"
 		{ BOOL }
-		{ "1" }
+		{ "0" }
 	}
 	
 	"hud_medichealtargetmarker"
