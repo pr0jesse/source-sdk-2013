@@ -31,6 +31,37 @@ ConVar tf_show_maps_details_explanation_count( "tf_show_maps_details_explanation
 
 using namespace vgui;
 
+static const struct
+{
+	const char *m_pszPrefix;
+	const char *m_pszToken;
+} s_MapGroups[] =
+{
+	{ "cp_",	"#Gametype_CP" },
+	{ "ctf_",	"#Gametype_CTF" },
+	{ "koth_",	"#Gametype_Koth" },
+	{ "pl_",	"#Gametype_Escort" },
+	{ "plr_",	"#Gametype_EscortRace" },
+	{ "pd_",	"#Gametype_PlayerDestruction" },
+	{ "sd_",	"#Gametype_SD" },
+	{ "arena_",	"#Gametype_Arena" },
+	{ "zi_",	"#GameType_ZI" },
+	{ "vsh_",	"#GameType_VSH" },
+	{ "tow_",	"#GameType_TOW" },
+	{ "htf_",	"#GameType_HTF" },
+	{ "",		"#TF_Casual_MapGroup_Other" },
+};
+
+static int GetMapGroup( const MapDef_t* pMap )
+{
+	int nGroup = 0;
+	while ( V_strnicmp( pMap->pszMapName, s_MapGroups[ nGroup ].m_pszPrefix, V_strlen( s_MapGroups[ nGroup ].m_pszPrefix ) ) != 0 )
+	{
+		++nGroup;
+	}
+	return nGroup;
+}
+
 class CCasualCategory : public CExpandablePanel
 {
 	DECLARE_CLASS_SIMPLE( CCasualCategory, CExpandablePanel );
@@ -84,11 +115,20 @@ public:
 		{
 			int nYPos = 16;
 
+			bool bGroupByMode = m_eCategory == kGameCategory_Halloween || m_eCategory == kGameCategory_Christmas;
+
 			// Sort the maps alphabetically
 			CUtlVector< const MapDef_t* > vecSortedMaps;
 			vecSortedMaps.AddVectorToTail( pCategory->m_vecEnabledMaps );
-			vecSortedMaps.SortPredicate( []( const MapDef_t* pLeft, const MapDef_t* pRight ) -> bool
+			vecSortedMaps.SortPredicate( [ bGroupByMode ]( const MapDef_t* pLeft, const MapDef_t* pRight ) -> bool
 			{
+				if ( bGroupByMode )
+				{
+					int nGroupCmp = GetMapGroup( pLeft ) - GetMapGroup( pRight );
+					if ( nGroupCmp != 0 )
+						return nGroupCmp < 0;
+				}
+
 				// Localized map name first
 				int nLocaleCmp = wcscoll( g_pVGuiLocalize->Find( pLeft->pszMapNameLocKey ), g_pVGuiLocalize->Find( pRight->pszMapNameLocKey ) );
 				if ( nLocaleCmp != 0 )
@@ -103,9 +143,32 @@ public:
 				return pLeft->m_nDefIndex < pRight->m_nDefIndex;
 			} );
 
+			int nGroup = -1;
+			int nGroupIndex = 0;
 			FOR_EACH_VEC( vecSortedMaps, i )
 			{
 				const MapDef_t* pMap = vecSortedMaps[ i ];
+
+				int nMapGroup = bGroupByMode ? GetMapGroup( pMap ) : 0;
+				if ( nMapGroup != nGroup )
+				{
+					nGroup = nMapGroup;
+					nGroupIndex = 0;
+
+					if ( bGroupByMode )
+					{
+						Label* pHeader = new Label( pMapsContainer, "MapGroupHeader", s_MapGroups[ nGroup ].m_pszToken );
+						pHeader->SetAutoDelete( false );
+						pHeader->MakeReadyForUse();
+						pHeader->SetFont( pScheme->GetFont( "HudFontSmallestBold", true ) );
+						pHeader->SetFgColor( s_colorChallengeHeader );
+						pHeader->SetPos( 0, nYPos );
+						pHeader->SizeToContents();
+						m_vecGroupHeaders.AddToTail( pHeader );
+
+						nYPos += pHeader->GetTall() + 4;
+					}
+				}
 
 				// Load control settings
 				EditablePanel* pMapEntry = new EditablePanel( pMapsContainer, "MatchmakingCategoryMapPanel" );
@@ -127,11 +190,12 @@ public:
 				// Update label
 				pMapEntry->SetDialogVariable( "title_token", g_pVGuiLocalize->Find( pMap->pszMapNameLocKey ) );
 
-				bool bOdd = i % 2 == 1;
+				bool bOdd = nGroupIndex++ % 2 == 1;
 				int nXPos = bOdd ? GetWide() * 0.5f : 0;
 				pMapEntry->SetPos( nXPos, nYPos );
 				
-				nYPos += bOdd || i == vecSortedMaps.Count() - 1 ? pMapEntry->GetTall() : 0;
+				bool bLastInGroup = i == vecSortedMaps.Count() - 1 || ( bGroupByMode && GetMapGroup( vecSortedMaps[ i + 1 ] ) != nGroup );
+				nYPos += bOdd || bLastInGroup ? pMapEntry->GetTall() : 0;
 			}
 
 			pMapsContainer->SetTall( nYPos + 10 );
@@ -227,12 +291,19 @@ private:
 			m_mapMapPanels[ i ]->MarkForDeletion();
 		}
 		m_mapMapPanels.Purge();
+
+		FOR_EACH_VEC( m_vecGroupHeaders, i )
+		{
+			m_vecGroupHeaders[ i ]->MarkForDeletion();
+		}
+		m_vecGroupHeaders.Purge();
 	}
 
 	const EGameCategory m_eCategory;
 	CExImageButton* pToggleButton;
 	Panel* m_pSignalHandler;
 	CUtlMap< uint32, EditablePanel* > m_mapMapPanels;
+	CUtlVector< Label* > m_vecGroupHeaders;
 };
 
 DECLARE_BUILD_FACTORY( CCasualCriteriaPanel );
