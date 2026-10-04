@@ -45,21 +45,22 @@ static const struct
 	{ "pd_",	"#Gametype_PlayerDestruction" },
 	{ "sd_",	"#Gametype_SD" },
 	{ "arena_",	"#Gametype_Arena" },
-	{ "zi_",	"#GameType_ZI" },
-	{ "vsh_",	"#GameType_VSH" },
-	{ "tow_",	"#GameType_TOW" },
-	{ "htf_",	"#GameType_HTF" },
+	{ "zi_",	"#TF_Casual_MapGroup_ZI" },
+	{ "vsh_",	"#TF_Casual_MapGroup_VSH" },
+	{ "tow_",	"#TF_Casual_MapGroup_TOW" },
+	{ "htf_",	"#TF_Casual_MapGroup_HTF" },
 	{ "",		"#TF_Casual_MapGroup_Other" },
 };
 
 static int GetMapGroup( const MapDef_t* pMap )
 {
-	int nGroup = 0;
-	while ( V_strnicmp( pMap->pszMapName, s_MapGroups[ nGroup ].m_pszPrefix, V_strlen( s_MapGroups[ nGroup ].m_pszPrefix ) ) != 0 )
+	for ( int i = 0; i < ARRAYSIZE( s_MapGroups ) - 1; ++i )
 	{
-		++nGroup;
+		if ( !V_strnicmp( pMap->pszMapName, s_MapGroups[ i ].m_pszPrefix, V_strlen( s_MapGroups[ i ].m_pszPrefix ) ) )
+			return i;
 	}
-	return nGroup;
+
+	return ARRAYSIZE( s_MapGroups ) - 1;
 }
 
 class CCasualCategory : public CExpandablePanel
@@ -72,6 +73,7 @@ public:
 		, m_eCategory( eCategory )
 		, pToggleButton( NULL )
 		, m_mapMapPanels( DefLessFunc( uint32 ) )
+		, m_mapModePanels( DefLessFunc( int ) )
 		, m_pSignalHandler( pSignalHandler )
 	{}
 
@@ -157,16 +159,52 @@ public:
 
 					if ( bGroupByMode )
 					{
-						Label* pHeader = new Label( pMapsContainer, "MapGroupHeader", s_MapGroups[ nGroup ].m_pszToken );
-						pHeader->SetAutoDelete( false );
-						pHeader->MakeReadyForUse();
-						pHeader->SetFont( pScheme->GetFont( "HudFontSmallestBold", true ) );
-						pHeader->SetFgColor( s_colorChallengeHeader );
-						pHeader->SetPos( 0, nYPos );
-						pHeader->SizeToContents();
-						m_vecGroupHeaders.AddToTail( pHeader );
+						EditablePanel* pModeEntry = new EditablePanel( pMapsContainer, "MatchmakingCategoryMapPanel" );
+						pModeEntry->LoadControlSettings( "resource/ui/MatchmakingCategoryMapPanel.res" );
+						pModeEntry->SetAutoDelete( false );
+						if ( m_mapModePanels.Count() > 0 )
+						{
+							nYPos += pModeEntry->GetTall() / 2;
+						}
+						pModeEntry->SetWide( GetWide() );
+						pModeEntry->SetPos( 0, nYPos );
+						pModeEntry->SetControlVisible( "HealthProgressBar", false, true );
 
-						nYPos += pHeader->GetTall() + 4;
+						const wchar_t* pwszModeTitle = g_pVGuiLocalize->Find( s_MapGroups[ nGroup ].m_pszToken );
+						wchar_t wszModeTitle[ 128 ];
+						V_wcsncpy( wszModeTitle, pwszModeTitle ? pwszModeTitle : L"", sizeof( wszModeTitle ) );
+						V_wcsupr( wszModeTitle );
+						pModeEntry->SetDialogVariable( "title_token", wszModeTitle );
+
+						Label* pModeLabel = pModeEntry->FindControl< Label >( "MapNameLabel" );
+						if ( pModeLabel )
+						{
+							pModeEntry->MakeReadyForUse();
+							pModeLabel->SetFont( pScheme->GetFont( "HudFontSmallestBold", true ) );
+							pModeLabel->SetFgColor( s_colorChallengeHeader );
+
+							int nLabelX, nLabelY;
+							pModeLabel->GetPos( nLabelX, nLabelY );
+							pModeLabel->SetWide( pModeEntry->GetWide() - nLabelX );
+						}
+
+						CExCheckButton* pModeCheckButton = pModeEntry->FindControl< CExCheckButton >( "MapCheckbutton" );
+						if ( pModeCheckButton )
+						{
+							int nCheckX, nCheckY;
+							pModeCheckButton->GetPos( nCheckX, nCheckY );
+							pModeCheckButton->SetWide( pModeEntry->GetWide() - nCheckX );
+
+							KeyValues* pKVData = new KeyValues( "data" );
+							pKVData->SetInt( "mode_category", m_eCategory );
+							pKVData->SetInt( "mode_group", nGroup );
+							pModeCheckButton->SetData( pKVData );
+							pModeCheckButton->AddActionSignalTarget( m_pSignalHandler );
+						}
+
+						m_mapModePanels.Insert( nGroup, pModeEntry );
+
+						nYPos += pModeEntry->GetTall();
 					}
 				}
 
@@ -282,6 +320,38 @@ public:
 		}
 	}
 
+	void SetModeCheckButtonStates( bool bClickable )
+	{
+		const SchemaGameCategory_t* pCategory = GetItemSchema()->GetGameCategory( m_eCategory );
+		if ( !pCategory )
+			return;
+
+		FOR_EACH_MAP_FAST( m_mapModePanels, i )
+		{
+			bool bSelected = false;
+			FOR_EACH_VEC( pCategory->m_vecEnabledMaps, j )
+			{
+				const MapDef_t* pMap = pCategory->m_vecEnabledMaps[ j ];
+				if ( GetMapGroup( pMap ) == m_mapModePanels.Key( i ) && GTFPartyClient()->GetEffectiveGroupCriteria().IsCasualMapSelected( pMap->m_nDefIndex ) )
+				{
+					bSelected = true;
+					break;
+				}
+			}
+
+			CExCheckButton* pModeCheckButton = m_mapModePanels[ i ]->FindControl< CExCheckButton >( "MapCheckbutton", true );
+			if ( pModeCheckButton )
+			{
+				pModeCheckButton->SetSilentMode( true );
+				pModeCheckButton->SetCheckButtonCheckable( true );
+				pModeCheckButton->SetSelected( bSelected );
+				pModeCheckButton->SetCheckButtonCheckable( bClickable );
+				pModeCheckButton->SetTooltip( bClickable ? NULL : GetDashboardTooltip( k_eSmallFont ), "#TF_Matchmaking_OnlyLeaderCanChange" );
+				pModeCheckButton->SetSilentMode( false );
+			}
+		}
+	}
+
 private:
 	void ClearMapEntries()
 	{
@@ -292,18 +362,18 @@ private:
 		}
 		m_mapMapPanels.Purge();
 
-		FOR_EACH_VEC( m_vecGroupHeaders, i )
+		FOR_EACH_MAP_FAST( m_mapModePanels, i )
 		{
-			m_vecGroupHeaders[ i ]->MarkForDeletion();
+			m_mapModePanels[ i ]->MarkForDeletion();
 		}
-		m_vecGroupHeaders.Purge();
+		m_mapModePanels.Purge();
 	}
 
 	const EGameCategory m_eCategory;
 	CExImageButton* pToggleButton;
 	Panel* m_pSignalHandler;
 	CUtlMap< uint32, EditablePanel* > m_mapMapPanels;
-	CUtlVector< Label* > m_vecGroupHeaders;
+	CUtlMap< int, EditablePanel* > m_mapModePanels;
 };
 
 DECLARE_BUILD_FACTORY( CCasualCriteriaPanel );
@@ -457,7 +527,8 @@ void CCasualCriteriaPanel::OnCheckButtonChecked( vgui::Panel* panel )
 			int nMapIndex = pCheckButton->GetData()->GetInt( "map_index", -1 );
 			int nCategoryIndex = pCheckButton->GetData()->GetInt( "category_index", -1 );
 			int nGroupIndex = pCheckButton->GetData()->GetInt( "group_index", -1 );
-			Assert( nCategoryIndex >= 0 || nGroupIndex >= 0 || nMapIndex >= 0 );
+			int nModeGroup = pCheckButton->GetData()->GetInt( "mode_group", -1 );
+			Assert( nCategoryIndex >= 0 || nGroupIndex >= 0 || nMapIndex >= 0 || nModeGroup >= 0 );
 			if ( nGroupIndex >= 0 )
 			{
 				EMatchmakingGroupType eGroup = EMatchmakingGroupType( nGroupIndex );
@@ -471,6 +542,20 @@ void CCasualCriteriaPanel::OnCheckButtonChecked( vgui::Panel* panel )
 			else if ( nMapIndex >= 0 )
 			{
 				GTFPartyClient()->MutLocalGroupCriteria().SetCasualMapSelected( nMapIndex, bSelected );
+			}
+			else if ( nModeGroup >= 0 )
+			{
+				const SchemaGameCategory_t* pCategory = GetItemSchema()->GetGameCategory( EGameCategory( pCheckButton->GetData()->GetInt( "mode_category", -1 ) ) );
+				if ( pCategory )
+				{
+					FOR_EACH_VEC( pCategory->m_vecEnabledMaps, i )
+					{
+						if ( GetMapGroup( pCategory->m_vecEnabledMaps[ i ] ) == nModeGroup )
+						{
+							GTFPartyClient()->MutLocalGroupCriteria().SetCasualMapSelected( pCategory->m_vecEnabledMaps[ i ]->m_nDefIndex, bSelected );
+						}
+					}
+				}
 			}
 		}
 
@@ -597,6 +682,8 @@ void CCasualCriteriaPanel::WriteCategories( void )
 					vecSelectedMaps.AddToTail( pCategory->m_vecEnabledMaps[ k ] );
 				}
 			}
+
+			pListEntry->SetModeCheckButtonStates( bLeader );
 
 			if ( bCatSelected )
 			{
