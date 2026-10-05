@@ -280,8 +280,10 @@ void CCasualCriteriaPanel::OnThink()
 }
 
 static const int k_nMapPreviewWide = 170;
-static const int k_nMapPreviewTall = 128;
-static const int k_nMapPreviewVisibleTall = 96;
+static const int k_nMapPreviewTall = 125;
+static const int k_nMapPreviewVisibleTall = 94;
+static const int k_nMapPreviewBleed = 6;
+static const int k_nMapPreviewDrop = 1;
 static const int k_nMapPreviewSlice = 21;
 static const int k_nMapPreviewBorder = 10;
 static const int k_nMapPreviewFrameWide = k_nMapPreviewWide + k_nMapPreviewBorder * 2 - 1;
@@ -336,12 +338,12 @@ void CCasualCriteriaPanel::UpdateMapPreview( void )
 				Panel* pClip = new Panel( m_pMapPreviewFrame, "MapPreviewClip" );
 				pClip->SetPaintBackgroundEnabled( false );
 				pClip->SetMouseInputEnabled( false );
-				pClip->SetBounds( k_nMapPreviewBorder, k_nMapPreviewBorder, k_nMapPreviewWide, k_nMapPreviewVisibleTall );
+				pClip->SetBounds( k_nMapPreviewBorder - k_nMapPreviewBleed, k_nMapPreviewBorder - k_nMapPreviewBleed + k_nMapPreviewDrop, k_nMapPreviewWide + k_nMapPreviewBleed * 2, k_nMapPreviewVisibleTall + k_nMapPreviewBleed * 2 );
 
 				m_pMapPreview = new ImagePanel( pClip, "MapPreview" );
 				m_pMapPreview->SetShouldScaleImage( true );
 				m_pMapPreview->SetMouseInputEnabled( false );
-				m_pMapPreview->SetBounds( 0, 0, k_nMapPreviewWide, k_nMapPreviewTall );
+				m_pMapPreview->SetBounds( 0, 0, k_nMapPreviewWide + k_nMapPreviewBleed * 2, k_nMapPreviewTall + k_nMapPreviewBleed * 2 );
 
 				Panel* pBorder = new ScalableImagePanel( m_pMapPreviewFrame, "MapPreviewBorder" );
 				pBorder->SetMouseInputEnabled( false );
@@ -373,7 +375,7 @@ void CCasualCriteriaPanel::UpdateMapPreview( void )
 	}
 
 	int nHorizontalGap = scheme()->GetProportionalScaledValue( 28 );
-	int nVerticalOffset = scheme()->GetProportionalScaledValue( 10 );
+	int nVerticalOffset = scheme()->GetProportionalScaledValue( 14 );
 
 	int nScreenWide, nScreenTall;
 	surface()->GetScreenSize( nScreenWide, nScreenTall );
