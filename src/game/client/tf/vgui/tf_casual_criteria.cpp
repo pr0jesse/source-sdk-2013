@@ -37,6 +37,7 @@ static const struct
 	const char *m_pszToken;
 } s_MapGroups[] =
 {
+	{ "cp_degrootkeep_rats",	"#GameType_Medieval" },
 	{ "cp_",	"#Gametype_CP" },
 	{ "ctf_",	"#Gametype_CTF" },
 	{ "koth_",	"#Gametype_Koth" },
