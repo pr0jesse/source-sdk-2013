@@ -37,7 +37,6 @@ static const struct
 	const char *m_pszToken;
 } s_MapGroups[] =
 {
-	{ "cp_degrootkeep_rats",	"#GameType_Medieval" },
 	{ "cp_",	"#Gametype_CP" },
 	{ "ctf_",	"#Gametype_CTF" },
 	{ "koth_",	"#Gametype_Koth" },
@@ -51,17 +50,22 @@ static const struct
 	{ "tow_",	"#TF_Casual_MapGroup_TOW" },
 	{ "htf_",	"#TF_Casual_MapGroup_HTF" },
 	{ "",		"#TF_Casual_MapGroup_Other" },
+	{ "cp_degrootkeep_rats",	"#GameType_Medieval" },
 };
 
 static int GetMapGroup( const MapDef_t* pMap )
 {
-	for ( int i = 0; i < ARRAYSIZE( s_MapGroups ) - 1; ++i )
+	int nMedieval = ARRAYSIZE( s_MapGroups ) - 1;
+	if ( !V_strnicmp( pMap->pszMapName, s_MapGroups[ nMedieval ].m_pszPrefix, V_strlen( s_MapGroups[ nMedieval ].m_pszPrefix ) ) )
+		return nMedieval;
+
+	for ( int i = 0; i < nMedieval - 1; ++i )
 	{
 		if ( !V_strnicmp( pMap->pszMapName, s_MapGroups[ i ].m_pszPrefix, V_strlen( s_MapGroups[ i ].m_pszPrefix ) ) )
 			return i;
 	}
 
-	return ARRAYSIZE( s_MapGroups ) - 1;
+	return nMedieval - 1;
 }
 
 class CCasualCategory : public CExpandablePanel
