@@ -374,20 +374,28 @@ void CCasualCriteriaPanel::UpdateMapPreview( void )
 		return;
 	}
 
-	int nHorizontalGap = scheme()->GetProportionalScaledValue( 28 );
+	int nHorizontalGap = scheme()->GetProportionalScaledValue( 3 );
 	int nVerticalOffset = scheme()->GetProportionalScaledValue( 14 );
 
 	int nScreenWide, nScreenTall;
 	surface()->GetScreenSize( nScreenWide, nScreenTall );
 
-	int nX = nCursorX - k_nMapPreviewFrameWide - nHorizontalGap;
-	int nY = nCursorY - k_nMapPreviewFrameTall / 2 + nVerticalOffset;
-	if ( nX < 0 )
+	int nCheckX = 0, nCheckY = 0;
+	pCheckButton->LocalToScreen( nCheckX, nCheckY );
+
+	int nListTop = 0, nListBottom = nScreenTall;
+	Panel* pList = FindControl< Panel >( "GameModesList", true );
+	if ( pList )
 	{
-		nX = nCursorX + nHorizontalGap;
+		int nListX = 0;
+		pList->LocalToScreen( nListX, nListTop );
+		nListBottom = nListTop + pList->GetTall();
 	}
+
+	int nX = nCheckX - k_nMapPreviewFrameWide - nHorizontalGap;
+	int nY = nCursorY - k_nMapPreviewFrameTall / 2 + nVerticalOffset;
 	nX = clamp( nX, 0, nScreenWide - k_nMapPreviewFrameWide );
-	nY = clamp( nY, 0, nScreenTall - k_nMapPreviewFrameTall );
+	nY = MAX( nListTop, MIN( nY, nListBottom - k_nMapPreviewFrameTall ) );
 
 	bool bWasVisible = m_pMapPreviewFrame->IsVisible();
 	m_pMapPreviewFrame->SetBounds( nX, nY, k_nMapPreviewFrameWide, k_nMapPreviewFrameTall );
