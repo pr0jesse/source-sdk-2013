@@ -289,8 +289,20 @@ static const int k_nMapPreviewBorder = 10;
 static const int k_nMapPreviewFrameWide = k_nMapPreviewWide + k_nMapPreviewBorder * 2 - 1;
 static const int k_nMapPreviewFrameTall = k_nMapPreviewVisibleTall + k_nMapPreviewBorder * 2 - 1;
 
+ConVar tf_map_thumbnail_showcase( "tf_map_thumbnail_showcase", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Show map thumbnail previews in the Casual map picker." );
+
 void CCasualCriteriaPanel::UpdateMapPreview( void )
 {
+	if ( !tf_map_thumbnail_showcase.GetBool() )
+	{
+		if ( m_pMapPreviewFrame )
+		{
+			m_pMapPreviewFrame->SetVisible( false );
+		}
+
+		return;
+	}
+
 	const MapDef_t* pMap = NULL;
 
 	int nCursorX, nCursorY;
