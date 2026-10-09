@@ -147,6 +147,7 @@ public:
 		: BaseClass( parent, panelName )
 		, m_eCategory( eCategory )
 		, m_unFeaturedRotation( 0 )
+		, m_flNextFeaturedCheck( 0 )
 		, pToggleButton( NULL )
 		, m_mapMapPanels( DefLessFunc( uint32 ) )
 		, m_pSignalHandler( pSignalHandler )
@@ -346,6 +347,31 @@ public:
 		return m_eCategory == eNumGameCategories && m_unFeaturedRotation != GetFeaturedRotation();
 	}
 
+	bool BFeaturedMapsChanged() const
+	{
+		CUtlVector< const MapDef_t* > vecMaps;
+		GetFeaturedMaps( vecMaps );
+		if ( vecMaps.Count() != m_vecFeaturedMaps.Count() )
+			return true;
+
+		FOR_EACH_VEC( vecMaps, i )
+		{
+			if ( vecMaps[ i ] != m_vecFeaturedMaps[ i ] )
+				return true;
+		}
+
+		return false;
+	}
+
+	bool BFeaturedMapsChangedThrottled()
+	{
+		if ( m_eCategory != eNumGameCategories || Plat_FloatTime() < m_flNextFeaturedCheck )
+			return false;
+
+		m_flNextFeaturedCheck = Plat_FloatTime() + 10.0;
+		return BFeaturedMapsChanged();
+	}
+
 	const CUtlVector< const MapDef_t* >& GetFeaturedMapList() const
 	{
 		return m_vecFeaturedMaps;
@@ -415,6 +441,7 @@ private:
 
 	const EGameCategory m_eCategory;
 	uint32 m_unFeaturedRotation;
+	double m_flNextFeaturedCheck;
 	CUtlVector< const MapDef_t* > m_vecFeaturedMaps;
 	CExImageButton* pToggleButton;
 	Panel* m_pSignalHandler;
@@ -451,7 +478,7 @@ void CCasualCriteriaPanel::OnThink()
 	BaseClass::OnThink();
 
 	auto idxFeatured = m_mapCategoryPanels.Find( eNumGameCategories );
-	if ( idxFeatured != m_mapCategoryPanels.InvalidIndex() && ( (CCasualCategory*)m_mapCategoryPanels[ idxFeatured ] )->BFeaturedRotationChanged() )
+	if ( idxFeatured != m_mapCategoryPanels.InvalidIndex() && ( ( (CCasualCategory*)m_mapCategoryPanels[ idxFeatured ] )->BFeaturedRotationChanged() || ( (CCasualCategory*)m_mapCategoryPanels[ idxFeatured ] )->BFeaturedMapsChangedThrottled() ) )
 	{
 		m_bCriteriaDirty = true;
 	}
@@ -734,7 +761,7 @@ void CCasualCriteriaPanel::WriteCategories( void )
 				pFeaturedEntry = (CCasualCategory*)m_mapCategoryPanels[ idxFeatured ];
 			}
 
-			if ( pFeaturedEntry->BFeaturedRotationChanged() )
+			if ( pFeaturedEntry->BFeaturedRotationChanged() || pFeaturedEntry->BFeaturedMapsChanged() )
 			{
 				pFeaturedEntry->InvalidateLayout( false, true );
 			}
